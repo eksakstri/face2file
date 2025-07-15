@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Face Recognition App</title>
+</head>
+<body>
+  <h2>📝 Upload File with Face</h2>
+  <input type="file" id="fileInput" />
+  <button onclick="uploadFile()">Store Face & File</button>
+
+  <h2>🔍 Match Face & Get File</h2>
+  <button onclick="matchFace()">Match & Get File</button>
+
+  <div id="result" style="margin-top: 20px;"></div>
+
+  <script>
+    function uploadFile() {
+      const fileInput = document.getElementById("fileInput");
+      if (!fileInput.files.length) {
+        alert("Please select a file first.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+
+      fetch("/store", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("result").innerText = data.status || data.error;
+      })
+      .catch(err => {
+        document.getElementById("result").innerText = "Error: " + err;
+      });
+    }
+
+    function matchFace() {
+      fetch("/match")
+        .then(res => res.json())
+        .then(data => {
+          if (data.file_base64) {
+            const link = document.createElement("a");
+            link.href = "data:application/octet-stream;base64," + data.file_base64;
+            link.download = "matched_file";
+            link.innerText = "Click here to download matched file";
+            const container = document.getElementById("result");
+            container.innerHTML = "";
+            container.appendChild(link);
+          } else {
+            document.getElementById("result").innerText = data.status || data.error;
+          }
+        })
+        .catch(err => {
+          document.getElementById("result").innerText = "Error: " + err;
+        });
+    }
+  </script>
+</body>
+</html>
